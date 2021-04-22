@@ -1,0 +1,122 @@
+pragma solidity ^0.6.12;
+
+// SPDX-License-Identifier: GPL-3.0
+
+import "./Ownable.sol";
+import "./SafeMath.sol";
+
+contract Election is Ownable {
+
+using SafeMath for uint256;
+
+ 
+    // Model a Participant
+    struct Participant {
+
+        uint256 id;
+        address Identifiant;
+        bool hasVoted;
+        bool isPresident;
+
+    }
+
+    // Model a Film
+    struct Film {
+
+        uint256 id;
+        string name;
+        bool hasWon;
+        bool PalmedOrWinner;
+        uint VoteCount;
+        bool GrandPrixWinner;
+        uint VoteCount2;
+        bool PrixMiseEnSceneWinner;
+        uint VoteCount3;
+
+    }
+    
+
+    
+    // Store Candidates
+    // Fetch Candidate
+    mapping(uint => Participant) public candidates;
+    
+    // Store Film
+    // Fetch Film
+    mapping(uint => Film) public films;
+    
+    // Store Jury Count
+    uint public JuryCount;
+    
+    // Store Film Count
+    uint public FilmCount;
+    
+    // Store Jury President
+    address public JuryPresident;
+    
+    // Festival status
+    bool public hasFestivalStarted;
+    bool public isFestivalRunning;
+    
+    // voted event
+    event votedEvent ( uint indexed _candidateId);
+
+    function createJury (address _address, bool _president) public onlyOwner {
+        JuryCount ++;
+        candidates[JuryCount] = Participant(JuryCount, _address, false, _president);
+        if(_president == true){
+            JuryPresident = _address;
+        }
+    }
+    function deleteJury (uint _id) public onlyOwner {
+        
+        // Election must not have started
+        require(!hasFestivalStarted, "Festival has already started");
+        
+        // Remove participant
+        JuryCount --;
+        delete candidates[_id];
+    }
+
+    function createFilm (string memory _name) public onlyOwner {
+        FilmCount ++;
+        films[FilmCount] = Film(FilmCount, _name, false,false, 0, false, 0, false, 0);
+    }
+
+     function runFestival (bool _status) public onlyOwner {
+        if (!hasFestivalStarted && _status) {
+            hasFestivalStarted = true;
+        }
+        isFestivalRunning = _status;
+    }
+    
+    function closeFestival (bool _status) public onlyOwner {
+        require(hasFestivalStarted == true && isFestivalRunning == true, "Le festival n'a pas débuté");
+
+        if(_status = true){
+            hasFestivalStarted = false;
+            isFestivalRunning = false;
+        }
+        
+        
+    }
+    
+
+    function votePalmeDor (uint _id) public {
+        require(isFestivalRunning == true, "Le festival de Cannes n'a pas débuté");
+        
+        films[_id].VoteCount ++;
+        
+    }
+    function voteGrandPrix (uint _id) public {
+        require(isFestivalRunning == true, "Le festival de Cannes n'a pas débuté");
+
+        films[_id].VoteCount2 ++;
+        
+    }
+    function votePrixEnScene (uint _id) public {
+        require(isFestivalRunning == true, "Le festival de Cannes n'a pas débuté");
+        films[_id].VoteCount3 ++;
+        
+    }
+}
